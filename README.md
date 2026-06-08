@@ -299,4 +299,4 @@ python -c "from app import app; app.run(port=8080, debug=True)"
 
 ---
 
-> Dibuat dengan ❤️ untuk keperluan skripsi — 2024/2025
+> Dibuat dengan ❤️ untuk keperluan skripsi — 2025/2026
