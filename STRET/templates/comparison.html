@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Perbandingan Algoritma{% endblock %}
+{% block breadcrumb %}Perbandingan Algoritma{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+  <h2 class="page-title"><i class="bi bi-bar-chart-steps me-2 text-primary"></i>Perbandingan Algoritma</h2>
+  <p class="page-desc">Perbandingan metrik evaluasi K-Means vs Fuzzy C-Means untuk menentukan algoritma terbaik.</p>
+</div>
+
+<!-- Winner Banner -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="winner-banner">
+      <div class="winner-trophy">🏆</div>
+      <div class="winner-info">
+        <div class="winner-label">Algoritma Terbaik</div>
+        <div class="winner-name">{{ comp.best }}</div>
+        <div class="winner-score">
+          Menang {{ comp.scores.KMeans if comp.best == 'K-Means' else comp.scores.FCM }} dari 3 metrik evaluasi
+        </div>
+      </div>
+      <div class="winner-score-badges">
+        <div class="score-badge score-km {% if comp.best == 'K-Means' %}score-winner{% endif %}">
+          <div class="score-badge-label">K-Means</div>
+          <div class="score-badge-val">{{ comp.scores.KMeans }}/3</div>
+        </div>
+        <div class="score-badge score-fcm {% if comp.best == 'Fuzzy C-Means' %}score-winner{% endif %}">
+          <div class="score-badge-label">Fuzzy C-Means</div>
+          <div class="score-badge-val">{{ comp.scores.FCM }}/3</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabel Perbandingan -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="glass-card">
+      <div class="glass-card-header"><i class="bi bi-table me-2"></i>Tabel Perbandingan Metrik Evaluasi</div>
+      <div class="glass-card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark-custom comparison-table mb-0">
+            <thead>
+              <tr>
+                <th>Metrik</th>
+                <th class="text-center">K-Means</th>
+                <th class="text-center">Fuzzy C-Means</th>
+                <th class="text-center">Pemenang</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in comp.table %}
+              <tr>
+                <td><strong>{{ row.metrik }}</strong></td>
+                <td class="text-center">
+                  <span class="metric-val {% if row.pemenang == 'K-Means' %}metric-winner{% endif %}">
+                    {{ row.kmeans }}
+                    {% if row.pemenang == 'K-Means' %}
+                    <i class="bi bi-check-circle-fill text-success ms-1"></i>
+                    {% endif %}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <span class="metric-val {% if row.pemenang == 'Fuzzy C-Means' %}metric-winner{% endif %}">
+                    {{ row.fcm }}
+                    {% if row.pemenang == 'Fuzzy C-Means' %}
+                    <i class="bi bi-check-circle-fill text-success ms-1"></i>
+                    {% endif %}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <span class="badge {% if row.pemenang == 'K-Means' %}badge-km{% else %}badge-fcm{% endif %}">
+                    {{ row.pemenang }}
+                  </span>
+                </td>
+                <td class="text-muted small">{{ row.keterangan }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="glass-card comparison-algo-card algo-km">
+      <div class="algo-card-header">
+        <i class="bi bi-diagram-3 me-2"></i>K-Means
+        {% if comp.best == 'K-Means' %}
+        <span class="badge bg-success ms-2">✓ Terbaik</span>
+        {% endif %}
+      </div>
+      <div class="algo-card-body">
+        <div class="algo-metric-row">
+          <span>Silhouette Score</span>
+          <strong>{{ km_eval.silhouette }}</strong>
+        </div>
+        <div class="algo-metric-row">
+          <span>Davies-Bouldin Index</span>
+          <strong>{{ km_eval.dbi }}</strong>
+        </div>
+        <div class="algo-metric-row">
+          <span>Calinski-Harabász Index</span>
+          <strong>{{ km_eval.chi }}</strong>
+        </div>
+        <div class="algo-metric-row">
+          <span>FPC</span>
+          <strong>N/A</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="glass-card comparison-algo-card algo-fcm">
+      <div class="algo-card-header">
+        <i class="bi bi-stars me-2"></i>Fuzzy C-Means
+        {% if comp.best == 'Fuzzy C-Means' %}
+        <span class="badge bg-success ms-2">✓ Terbaik</span>
+        {% endif %}
+      </div>
+      <div class="algo-card-body">
+        <div class="algo-metric-row">
+          <span>Silhouette Score</span>
+          <strong>{{ fcm_eval.silhouette }}</strong>
+        </div>
+        <div class="algo-metric-row">
+          <span>Davies-Bouldin Index</span>
+          <strong>{{ fcm_eval.dbi }}</strong>
+        </div>
+        <div class="algo-metric-row">
+          <span>Calinski-Harabász Index</span>
+          <strong>{{ fcm_eval.chi }}</strong>
+        </div>
+        <div class="algo-metric-row">
+          <span>Fuzzy Partition Coefficient</span>
+          <strong>{{ fcm_eval.fpc }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Alasan -->
+{% if comp.alasan %}
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="glass-card">
+      <div class="glass-card-header"><i class="bi bi-chat-text me-2 text-info"></i>Kesimpulan Analisis</div>
+      <div class="glass-card-body">
+        <p>
+          Berdasarkan evaluasi tiga metrik utama clustering, <strong>{{ comp.best }}</strong>
+          ditetapkan sebagai algoritma yang lebih unggul dengan alasan:
+        </p>
+        <ul class="conclusion-list">
+          {% for alasan in comp.alasan %}
+          <li><i class="bi bi-check2-circle text-success me-2"></i>{{ alasan }}</li>
+          {% endfor %}
+        </ul>
+        <div class="info-alert mt-3">
+          <i class="bi bi-mortarboard-fill me-2 text-warning"></i>
+          Hasil perbandingan ini digunakan sebagai dasar rekomendasi algoritma dalam analisis skripsi.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between">
+  <a href="{{ url_for('fcm') }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-2"></i>Fuzzy C-Means
+  </a>
+  <a href="{{ url_for('visualisasi') }}" class="btn btn-primary">
+    Lihat Visualisasi <i class="bi bi-graph-up-arrow ms-2"></i>
+  </a>
+</div>
+{% endblock %}

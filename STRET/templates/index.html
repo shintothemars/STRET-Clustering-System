@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section mb-4">
+  <div class="row align-items-center">
+    <div class="col-md-8">
+      <h1 class="hero-title">
+        <span class="text-gradient">STRET</span>
+        <span class="hero-subtitle-inline"> — Street Photography Clustering</span>
+      </h1>
+      <p class="hero-desc">
+        Sistem clustering kepadatan sesi foto pada jasa street photography
+        <strong>Sudut Kota Lama</strong> menggunakan K-Means dan Fuzzy C-Means.
+      </p>
+      {% if not cache_ready %}
+      <a href="{{ url_for('upload') }}" class="btn btn-primary btn-hero">
+        <i class="bi bi-cloud-upload me-2"></i>Mulai — Upload Dataset
+      </a>
+      {% else %}
+      <a href="{{ url_for('visualisasi') if clustering_ready else url_for('kmeans') }}" class="btn btn-primary btn-hero">
+        <i class="bi bi-play-circle me-2"></i>
+        {{ "Lihat Visualisasi" if clustering_ready else "Jalankan Clustering" }}
+      </a>
+      {% endif %}
+    </div>
+    <div class="col-md-4 d-none d-md-flex justify-content-end">
+      <div class="hero-icon-wrap">
+        <i class="bi bi-camera2 hero-icon"></i>
+        <div class="hero-icon-ring ring1"></div>
+        <div class="hero-icon-ring ring2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+{% if cache_ready %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-blue">
+      <div class="stat-icon"><i class="bi bi-database-fill"></i></div>
+      <div class="stat-value">{{ stats.total_data | default(0) }}</div>
+      <div class="stat-label">Total Data</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-green">
+      <div class="stat-icon"><i class="bi bi-geo-alt-fill"></i></div>
+      <div class="stat-value">{{ stats.lokasi | default(3) }}</div>
+      <div class="stat-label">Lokasi</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-purple">
+      <div class="stat-icon"><i class="bi bi-pie-chart-fill"></i></div>
+      <div class="stat-value">{{ stats.cluster | default(3) }}</div>
+      <div class="stat-label">Jumlah Cluster</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-gold">
+      <div class="stat-icon"><i class="bi bi-trophy-fill"></i></div>
+      <div class="stat-value">{{ stats.best_algo | default("—") }}</div>
+      <div class="stat-label">Algoritma Terbaik</div>
+    </div>
+  </div>
+</div>
+
+{% if clustering_ready and stats.dist_km %}
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="glass-card">
+      <div class="glass-card-header">
+        <i class="bi bi-bar-chart-fill me-2"></i>Distribusi Cluster K-Means
+      </div>
+      <div class="glass-card-body">
+        <div class="cluster-dist-bars">
+          {% set total = stats.dist_km.values() | sum %}
+          {% for label, count in stats.dist_km.items() %}
+          <div class="dist-bar-item">
+            <div class="dist-bar-label">
+              <span class="cluster-dot cluster-{{ label | lower }}"></span>
+              {{ label }}
+            </div>
+            <div class="dist-bar-track">
+              <div class="dist-bar-fill dist-{{ label | lower }}"
+                   style="width: {{ (count / total * 100) | round(1) }}%"></div>
+            </div>
+            <div class="dist-bar-count">{{ count }} data ({{ (count / total * 100) | round(1) }}%)</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- Welcome Cards (sebelum upload) -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="step-card">
+      <div class="step-num">01</div>
+      <div class="step-icon"><i class="bi bi-cloud-upload-fill"></i></div>
+      <h5>Upload Dataset</h5>
+      <p>Upload file Excel (.xlsx) dataset sesi foto Sudut Kota Lama.</p>
+      <a href="{{ url_for('upload') }}" class="btn btn-sm btn-outline-primary mt-2">Mulai</a>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="step-card">
+      <div class="step-num">02</div>
+      <div class="step-icon"><i class="bi bi-gear-fill"></i></div>
+      <h5>Preprocessing & Clustering</h5>
+      <p>Sistem otomatis melakukan preprocessing, K-Means dan Fuzzy C-Means.</p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="step-card">
+      <div class="step-num">03</div>
+      <div class="step-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <h5>Analisis Hasil</h5>
+      <p>Lihat evaluasi, visualisasi, perbandingan, dan rekomendasi fotografer.</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Info Section -->
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="glass-card">
+      <div class="glass-card-header"><i class="bi bi-info-circle me-2"></i>Tentang Sistem</div>
+      <div class="glass-card-body">
+        <p class="mb-2">Sistem ini mengimplementasikan dua metode clustering untuk mengelompokkan kepadatan sesi foto:</p>
+        <ul class="info-list">
+          <li><i class="bi bi-diagram-3 text-primary"></i> <strong>K-Means</strong> — Hard clustering berbasis centroid</li>
+          <li><i class="bi bi-stars text-warning"></i> <strong>Fuzzy C-Means</strong> — Soft clustering dengan derajat keanggotaan</li>
+        </ul>
+        <div class="cluster-legend mt-3">
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#4A90D9"></span>
+            <strong>Sepi</strong> — 1 Fotografer
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#27AE60"></span>
+            <strong>Normal</strong> — 3 Fotografer
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#E74C3C"></span>
+            <strong>Padat</strong> — 5 Fotografer
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="glass-card">
+      <div class="glass-card-header"><i class="bi bi-columns-gap me-2"></i>Fitur Clustering</div>
+      <div class="glass-card-body">
+        <p class="mb-2">Fitur yang digunakan dalam proses clustering:</p>
+        <div class="feature-badges">
+          <span class="feature-badge"><i class="bi bi-geo-alt"></i> Lokasi</span>
+          <span class="feature-badge"><i class="bi bi-calendar-weekend"></i> Weekend</span>
+          <span class="feature-badge"><i class="bi bi-calendar-check"></i> Hari Libur</span>
+          <span class="feature-badge"><i class="bi bi-camera"></i> Sesi Foto</span>
+        </div>
+        <p class="mt-3 mb-2">Lokasi yang tersedia:</p>
+        <div class="feature-badges">
+          <span class="feature-badge loc-badge"><i class="bi bi-building"></i> Marba</span>
+          <span class="feature-badge loc-badge"><i class="bi bi-building"></i> Pringsewu</span>
+          <span class="feature-badge loc-badge"><i class="bi bi-building"></i> Distrik</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

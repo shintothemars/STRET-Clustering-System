@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="STRET — Implementasi K-Means dan Fuzzy C-Means Clustering Kepadatan Sesi Foto pada Jasa Street Photography Sudut Kota Lama" />
+  <title>{% block title %}STRET Clustering{% endblock %} | STRET</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
+  <!-- Custom CSS -->
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+<nav id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <i class="bi bi-camera2"></i>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">STRET</span>
+        <span class="brand-sub">Clustering System</span>
+      </div>
+    </div>
+    <button class="sidebar-toggle-btn d-lg-none" id="sidebarToggleClose">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  {% if filename %}
+  <div class="sidebar-file-badge">
+    <i class="bi bi-file-earmark-spreadsheet"></i>
+    <span class="text-truncate">{{ filename }}</span>
+  </div>
+  {% endif %}
+
+  <div class="sidebar-nav-label">Menu Utama</div>
+  <ul class="sidebar-nav">
+    <li>
+      <a href="{{ url_for('index') }}" class="sidebar-link {% if request.endpoint == 'index' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dashboard</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('upload') }}" class="sidebar-link {% if request.endpoint == 'upload' %}active{% endif %}">
+        <i class="bi bi-cloud-upload"></i>
+        <span>Upload Dataset</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('data_understanding') }}" class="sidebar-link {% if request.endpoint == 'data_understanding' %}active{% endif %} {% if not cache_ready %}disabled-link{% endif %}">
+        <i class="bi bi-table"></i>
+        <span>Data Understanding</span>
+        {% if not cache_ready %}<span class="badge-lock"><i class="bi bi-lock-fill"></i></span>{% endif %}
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('preprocessing') }}" class="sidebar-link {% if request.endpoint == 'preprocessing' %}active{% endif %} {% if not cache_ready %}disabled-link{% endif %}">
+        <i class="bi bi-sliders"></i>
+        <span>Preprocessing</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="sidebar-nav-label">Algoritma</div>
+  <ul class="sidebar-nav">
+    <li>
+      <a href="{{ url_for('kmeans') }}" class="sidebar-link {% if request.endpoint == 'kmeans' %}active{% endif %} {% if not cache_ready %}disabled-link{% endif %}">
+        <i class="bi bi-diagram-3"></i>
+        <span>K-Means Clustering</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('fcm') }}" class="sidebar-link {% if request.endpoint == 'fcm' %}active{% endif %} {% if not cache_ready %}disabled-link{% endif %}">
+        <i class="bi bi-stars"></i>
+        <span>Fuzzy C-Means</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('comparison') }}" class="sidebar-link {% if request.endpoint == 'comparison' %}active{% endif %} {% if not clustering_ready %}disabled-link{% endif %}">
+        <i class="bi bi-bar-chart-steps"></i>
+        <span>Perbandingan Algoritma</span>
+        {% if best_algo %}
+        <span class="badge-best ms-auto">Best</span>
+        {% endif %}
+      </a>
+    </li>
+  </ul>
+
+  <div class="sidebar-nav-label">Output</div>
+  <ul class="sidebar-nav">
+    <li>
+      <a href="{{ url_for('visualisasi') }}" class="sidebar-link {% if request.endpoint == 'visualisasi' %}active{% endif %} {% if not clustering_ready %}disabled-link{% endif %}">
+        <i class="bi bi-graph-up-arrow"></i>
+        <span>Visualisasi</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('download') }}" class="sidebar-link {% if request.endpoint == 'download' %}active{% endif %}">
+        <i class="bi bi-download"></i>
+        <span>Download Hasil</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-footer-text">
+      <i class="bi bi-mortarboard-fill me-1"></i>
+      Skripsi — Sistem Informasi<br/>
+      <small>Sudut Kota Lama &copy; 2024</small>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════ OVERLAY (mobile) ═══════════════════════ -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ═══════════════════════ MAIN CONTENT ═══════════════════════ -->
+<main class="main-content" id="mainContent">
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="sidebar-toggle-btn" id="sidebarToggle">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="topbar-breadcrumb">
+        <span class="breadcrumb-home"><i class="bi bi-house-fill"></i></span>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">{% block breadcrumb %}Dashboard{% endblock %}</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-badge">
+        <i class="bi bi-cpu"></i>
+        <span>K=3 Cluster</span>
+      </div>
+      {% if best_algo %}
+      <div class="topbar-badge best-badge">
+        <i class="bi bi-trophy-fill"></i>
+        <span>Best: {{ best_algo }}</span>
+      </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  <div class="container-fluid px-4 pt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show custom-alert" role="alert">
+            <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-triangle{% elif category == 'warning' %}exclamation-circle{% else %}info-circle{% endif %}-fill me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Page Content -->
+  <div class="page-content container-fluid px-4 pb-5">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

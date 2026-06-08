@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Visualisasi{% endblock %}
+{% block breadcrumb %}Visualisasi{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+  <h2 class="page-title"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Dashboard Visualisasi</h2>
+  <p class="page-desc">Delapan grafik analisis komprehensif untuk pemahaman mendalam hasil clustering.</p>
+</div>
+
+<!-- Row 1: Histogram + Boxplot -->
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <i class="bi bi-bar-chart me-2 text-primary"></i>1. Histogram Sesi Foto
+      </div>
+      <div class="chart-card-body">
+        <img src="data:image/png;base64,{{ charts.histogram }}" class="chart-img" alt="Histogram Sesi Foto" />
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <i class="bi bi-box me-2 text-info"></i>2. Boxplot Sesi Foto per Lokasi
+      </div>
+      <div class="chart-card-body">
+        <img src="data:image/png;base64,{{ charts.boxplot }}" class="chart-img" alt="Boxplot Sesi Foto" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 2: Elbow + Scatter KMeans -->
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <i class="bi bi-bezier me-2 text-warning"></i>3. Elbow Method — K Optimal
+      </div>
+      <div class="chart-card-body">
+        <img src="data:image/png;base64,{{ charts.elbow }}" class="chart-img" alt="Elbow Method" />
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <i class="bi bi-diagram-3 me-2 text-primary"></i>4. Scatter Plot K-Means
+      </div>
+      <div class="chart-card-body">
+        <img src="data:image/png;base64,{{ charts.scatter_km }}" class="chart-img" alt="Scatter K-Means" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 3: Scatter FCM + Bar Chart -->
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <i class="bi bi-stars me-2 text-warning"></i>5. Scatter Plot Fuzzy C-Means
+      </div>
+      <div class="chart-card-body">
+        <img src="data:image/png;base64,{{ charts.scatter_fcm }}" class="chart-img" alt="Scatter FCM" />
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <i class="bi bi-bar-chart-fill me-2 text-success"></i>6. Bar Chart Rata-rata Sesi per Cluster
+      </div>
+      <div class="chart-card-body">
+        <img src="data:image/png;base64,{{ charts.bar_cluster }}" class="chart-img" alt="Bar Chart Cluster" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 4: Pie Chart + Heatmap -->
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <i class="bi bi-pie-chart-fill me-2 text-danger"></i>7. Pie Chart Distribusi Cluster
+      </div>
+      <div class="chart-card-body">
+        <img src="data:image/png;base64,{{ charts.pie_cluster }}" class="chart-img" alt="Pie Chart Cluster" />
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <i class="bi bi-grid-3x3-gap-fill me-2 text-info"></i>8. Heatmap Korelasi Fitur
+      </div>
+      <div class="chart-card-body">
+        <img src="data:image/png;base64,{{ charts.heatmap }}" class="chart-img" alt="Heatmap Korelasi" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between mt-3">
+  <a href="{{ url_for('comparison') }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-2"></i>Perbandingan Algoritma
+  </a>
+  <a href="{{ url_for('download') }}" class="btn btn-success">
+    <i class="bi bi-download me-2"></i>Download Hasil
+  </a>
+</div>
+{% endblock %}

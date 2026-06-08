@@ -1,0 +1,21 @@
+# STRET — Clustering System
+# Skripsi: Implementasi K-Means dan Fuzzy C-Means Clustering
+# Kepadatan Sesi Foto pada Jasa Street Photography Sudut Kota Lama
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+uploads/*.xlsx
+uploads/*.xls
+outputs/*.xlsx
+*.log
+.DS_Store
+Thumbs.db

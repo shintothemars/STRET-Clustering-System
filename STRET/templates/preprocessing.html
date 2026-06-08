@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Preprocessing{% endblock %}
+{% block breadcrumb %}Preprocessing{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+  <h2 class="page-title"><i class="bi bi-sliders me-2 text-primary"></i>Preprocessing Data</h2>
+  <p class="page-desc">Pembersihan, encoding, dan normalisasi data sebelum clustering.</p>
+</div>
+
+<!-- Status Pipeline -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="pipeline-steps">
+      <div class="pipeline-step done">
+        <div class="pipeline-step-icon"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="pipeline-step-label">Missing Value Check</div>
+      </div>
+      <div class="pipeline-connector"></div>
+      <div class="pipeline-step done">
+        <div class="pipeline-step-icon"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="pipeline-step-label">Duplikat Check</div>
+      </div>
+      <div class="pipeline-connector"></div>
+      <div class="pipeline-step done">
+        <div class="pipeline-step-icon"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="pipeline-step-label">Label Encoding</div>
+      </div>
+      <div class="pipeline-connector"></div>
+      <div class="pipeline-step done">
+        <div class="pipeline-step-icon"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="pipeline-step-label">MinMax Scaling</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-6">
+    <div class="stat-card stat-blue">
+      <div class="stat-icon"><i class="bi bi-database"></i></div>
+      <div class="stat-value">{{ prep.shape_raw[0] }}</div>
+      <div class="stat-label">Data Awal</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="stat-card {% if prep.missing_info.total == 0 %}stat-green{% else %}stat-red{% endif %}">
+      <div class="stat-icon"><i class="bi bi-{% if prep.missing_info.total == 0 %}check-circle{% else %}exclamation-triangle{% endif %}-fill"></i></div>
+      <div class="stat-value">{{ prep.missing_info.total }}</div>
+      <div class="stat-label">Missing Values</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="stat-card {% if prep.dup_info.jumlah_duplikat == 0 %}stat-green{% else %}stat-red{% endif %}">
+      <div class="stat-icon"><i class="bi bi-files"></i></div>
+      <div class="stat-value">{{ prep.dup_info.jumlah_duplikat }}</div>
+      <div class="stat-label">Duplikat</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="stat-card stat-green">
+      <div class="stat-icon"><i class="bi bi-database-check"></i></div>
+      <div class="stat-value">{{ prep.shape_clean[0] }}</div>
+      <div class="stat-label">Data Bersih</div>
+    </div>
+  </div>
+</div>
+
+<!-- Label Encoding -->
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="glass-card">
+      <div class="glass-card-header"><i class="bi bi-tags me-2 text-info"></i>Label Encoding — Hari</div>
+      <div class="glass-card-body">
+        <div class="encoding-grid">
+          {% for hari, kode in prep.mappings.Hari.items() %}
+          <div class="encoding-item">
+            <span class="enc-original">{{ hari }}</span>
+            <i class="bi bi-arrow-right enc-arrow"></i>
+            <span class="enc-code">{{ kode }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="glass-card">
+      <div class="glass-card-header"><i class="bi bi-tags me-2 text-info"></i>Label Encoding — Lokasi</div>
+      <div class="glass-card-body">
+        <div class="encoding-grid">
+          {% for lokasi, kode in prep.mappings.Lokasi.items() %}
+          <div class="encoding-item">
+            <span class="enc-original">{{ lokasi }}</span>
+            <i class="bi bi-arrow-right enc-arrow"></i>
+            <span class="enc-code">{{ kode }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabel Hasil Encoding -->
+<div class="row g-3 mb-3">
+  <div class="col-12">
+    <div class="glass-card">
+      <div class="glass-card-header"><i class="bi bi-table me-2"></i>Data Setelah Label Encoding (10 Baris)</div>
+      <div class="glass-card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark-custom mb-0">
+            <thead>
+              <tr>
+                {% for key in prep.head_enc[0].keys() %}
+                <th>{{ key }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in prep.head_enc %}
+              <tr>
+                {% for val in row.values() %}
+                <td>{{ val }}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabel Hasil Scaling -->
+<div class="row g-3 mb-3">
+  <div class="col-12">
+    <div class="glass-card">
+      <div class="glass-card-header">
+        <i class="bi bi-sliders me-2 text-success"></i>Data Setelah MinMax Scaling — Fitur Clustering (10 Baris)
+        <span class="badge-info-sm ms-2">Range: [0, 1]</span>
+      </div>
+      <div class="glass-card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark-custom mb-0">
+            <thead>
+              <tr>
+                <th>Lokasi_sc</th>
+                <th>Weekend_sc</th>
+                <th>HariLibur_sc</th>
+                <th>SesiFoto_sc</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in prep.head_scaled %}
+              <tr>
+                <td>{{ "%.4f"|format(row.Lokasi_sc) }}</td>
+                <td>{{ "%.4f"|format(row.Weekend_sc) }}</td>
+                <td>{{ "%.4f"|format(row.HariLibur_sc) }}</td>
+                <td>{{ "%.4f"|format(row.SesiFoto_sc) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+  <a href="{{ url_for('data_understanding') }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-2"></i>Data Understanding
+  </a>
+  <a href="{{ url_for('kmeans') }}" class="btn btn-primary">
+    Jalankan K-Means <i class="bi bi-arrow-right ms-2"></i>
+  </a>
+</div>
+{% endblock %}

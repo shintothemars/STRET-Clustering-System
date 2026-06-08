@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Fuzzy C-Means Clustering{% endblock %}
+{% block breadcrumb %}Fuzzy C-Means{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+  <h2 class="page-title"><i class="bi bi-stars me-2 text-warning"></i>Fuzzy C-Means Clustering</h2>
+  <p class="page-desc">Soft clustering dengan derajat keanggotaan untuk analisis yang lebih fleksibel.</p>
+</div>
+
+<!-- Pengaturan -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="glass-card">
+      <div class="glass-card-header"><i class="bi bi-gear me-2"></i>Pengaturan Fuzzy C-Means</div>
+      <div class="glass-card-body">
+        <form method="POST" action="{{ url_for('fcm') }}" class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Jumlah Cluster (C)</label>
+            <select name="n_clusters" class="form-select form-select-dark">
+              {% for k in [2, 3, 4, 5] %}
+              <option value="{{ k }}" {% if n_clusters == k %}selected{% endif %}>C = {{ k }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label fw-semibold">Fuzziness (m)</label>
+            <input type="text" class="form-control form-select-dark" value="2.0" readonly />
+          </div>
+          <div class="col-md-3">
+            <button type="submit" class="btn btn-warning w-100 text-dark fw-bold">
+              <i class="bi bi-play-circle me-2"></i>Jalankan FCM
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Evaluasi Metrics -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-6">
+    <div class="metric-card">
+      <div class="metric-icon text-success"><i class="bi bi-graph-up"></i></div>
+      <div class="metric-label">Silhouette Score</div>
+      <div class="metric-value">{{ eval_metrics.silhouette }}</div>
+      <div class="metric-desc">Mendekati 1 = baik</div>
+      <div class="metric-bar">
+        <div class="metric-bar-fill bg-success" style="width: {{ (eval_metrics.silhouette * 100)|abs }}%"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="metric-card">
+      <div class="metric-icon text-danger"><i class="bi bi-graph-down"></i></div>
+      <div class="metric-label">Davies-Bouldin Index</div>
+      <div class="metric-value">{{ eval_metrics.dbi }}</div>
+      <div class="metric-desc">Mendekati 0 = baik</div>
+      <div class="metric-bar">
+        <div class="metric-bar-fill bg-danger" style="width: {{ [100, (eval_metrics.dbi * 30)|round]|min }}%"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="metric-card">
+      <div class="metric-icon text-warning"><i class="bi bi-lightning-charge"></i></div>
+      <div class="metric-label">Calinski-Harabasz Index</div>
+      <div class="metric-value">{{ eval_metrics.chi }}</div>
+      <div class="metric-desc">Semakin tinggi = baik</div>
+      <div class="metric-bar">
+        <div class="metric-bar-fill bg-warning" style="width: 70%"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="metric-card metric-card-special">
+      <div class="metric-icon text-info"><i class="bi bi-percent"></i></div>
+      <div class="metric-label">Fuzzy Partition Coefficient</div>
+      <div class="metric-value">{{ eval_metrics.fpc }}</div>
+      <div class="metric-desc">Mendekati 1 = partisi jelas</div>
+      <div class="metric-bar">
+        <div class="metric-bar-fill bg-info" style="width: {{ (eval_metrics.fpc * 100)|round }}%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Distribusi Cluster -->
+<div class="row g-3 mb-4">
+  {% for label, count in dist.items() %}
+  <div class="col-md-4">
+    <div class="cluster-result-card cluster-{{ label | lower }}">
+      <div class="cluster-result-header">
+        <span class="cluster-icon">
+          {% if label == 'Sepi' %}🔵{% elif label == 'Normal' %}🟢{% else %}🔴{% endif %}
+        </span>
+        <span class="cluster-name">{{ label }}</span>
+      </div>
+      <div class="cluster-result-count">{{ count }}</div>
+      <div class="cluster-result-sub">data / hari</div>
+      <div class="cluster-result-rec">
+        <i class="bi bi-person-fill me-1"></i>
+        {% if label == 'Sepi' %}1{% elif label == 'Normal' %}3{% else %}5{% endif %} Fotografer
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Tabel Hasil -->
+<div class="glass-card mb-4">
+  <div class="glass-card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-table me-2"></i>Hasil FCM dengan Membership (50 data dari {{ total }})</span>
+    <a href="{{ url_for('comparison') }}" class="btn btn-sm btn-outline-warning">
+      Perbandingan <i class="bi bi-bar-chart-steps ms-1"></i>
+    </a>
+  </div>
+  <div class="glass-card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark-custom table-hover mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Tanggal</th>
+            <th>Hari</th>
+            <th>Lokasi</th>
+            <th>Sesi Foto</th>
+            <th>Cluster</th>
+            <th>Label</th>
+            {% for mc in membership_cols %}
+            <th>{{ mc }}</th>
+            {% endfor %}
+            <th>Rek. Fotografer</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i, row in enumerate(table_data) %}
+          <tr>
+            <td class="text-muted">{{ i + 1 }}</td>
+            <td>{{ row.get('Tanggal', '—') }}</td>
+            <td>{{ row.get('Hari', '—') }}</td>
+            <td>{{ row.get('Lokasi', '—') }}</td>
+            <td><strong>{{ row.get('Sesi Foto', '—') }}</strong></td>
+            <td>{{ row.get('Cluster_FCM', '—') }}</td>
+            <td>
+              {% set lbl = row.get('Label_Cluster', '') %}
+              <span class="cluster-badge cluster-{{ lbl | lower }}">{{ lbl }}</span>
+            </td>
+            {% for mc in membership_cols %}
+            <td class="small text-muted">{{ "%.3f"|format(row.get(mc, 0)) }}</td>
+            {% endfor %}
+            <td>
+              <strong>{{ row.get('Rekomendasi_Fotografer', '—') }}</strong>
+              <i class="bi bi-person-fill text-muted"></i>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between">
+  <a href="{{ url_for('kmeans') }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-2"></i>K-Means
+  </a>
+  <a href="{{ url_for('comparison') }}" class="btn btn-warning text-dark fw-bold">
+    Lihat Perbandingan <i class="bi bi-arrow-right ms-2"></i>
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Upload Dataset{% endblock %}
+{% block breadcrumb %}Upload Dataset{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+  <h2 class="page-title"><i class="bi bi-cloud-upload me-2 text-primary"></i>Upload Dataset</h2>
+  <p class="page-desc">Upload file Excel (.xlsx) dataset sesi foto Sudut Kota Lama untuk memulai analisis.</p>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="glass-card">
+      <div class="glass-card-body p-4">
+        <form id="uploadForm" action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+          <div class="upload-dropzone" id="dropzone">
+            <input type="file" id="fileInput" name="file" accept=".xlsx,.xls" class="upload-file-input" />
+            <div class="upload-icon">
+              <i class="bi bi-file-earmark-spreadsheet"></i>
+            </div>
+            <div class="upload-text">
+              <strong>Drag &amp; Drop</strong> file di sini
+            </div>
+            <div class="upload-subtext">atau klik untuk memilih file</div>
+            <div class="upload-formats">
+              <span class="format-badge">.xlsx</span>
+              <span class="format-badge">.xls</span>
+              <span class="format-badge-muted">Maks. 16 MB</span>
+            </div>
+          </div>
+
+          <div id="filePreview" class="file-preview d-none">
+            <div class="file-preview-icon"><i class="bi bi-file-earmark-spreadsheet-fill"></i></div>
+            <div class="file-preview-info">
+              <div class="file-preview-name" id="filePreviewName">---</div>
+              <div class="file-preview-size" id="filePreviewSize">---</div>
+            </div>
+            <button type="button" class="btn-file-remove" id="fileRemove">
+              <i class="bi bi-x-circle-fill"></i>
+            </button>
+          </div>
+
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary btn-lg btn-upload" id="submitBtn" disabled>
+              <i class="bi bi-upload me-2"></i>Upload &amp; Analisis Dataset
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="glass-card h-100">
+      <div class="glass-card-header"><i class="bi bi-info-circle me-2"></i>Format Dataset</div>
+      <div class="glass-card-body">
+        <p class="mb-3">Dataset harus memiliki kolom berikut:</p>
+        <div class="col-info-list">
+          <div class="col-info-item"><span class="col-badge">Tanggal</span><span>Tanggal pengambilan foto</span></div>
+          <div class="col-info-item"><span class="col-badge">Hari</span><span>Nama hari (Senin, Selasa, ...)</span></div>
+          <div class="col-info-item"><span class="col-badge">Lokasi</span><span>Marba / Pringsewu / Distrik</span></div>
+          <div class="col-info-item"><span class="col-badge">Jumlah Fotografer</span><span>Jumlah fotografer aktif</span></div>
+          <div class="col-info-item"><span class="col-badge">Sesi Foto</span><span>Jumlah sesi foto (numerik)</span></div>
+          <div class="col-info-item"><span class="col-badge">Weekend</span><span>0 = Bukan / 1 = Weekend</span></div>
+          <div class="col-info-item"><span class="col-badge">Hari Libur</span><span>0 = Bukan / 1 = Libur</span></div>
+        </div>
+        <div class="info-alert mt-3">
+          <i class="bi bi-lightbulb-fill me-2 text-warning"></i>
+          Pastikan nama kolom <strong>sama persis</strong> dengan format di atas agar preprocessing berjalan otomatis.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const filePreview = document.getElementById('filePreview');
+const filePreviewName = document.getElementById('filePreviewName');
+const filePreviewSize = document.getElementById('filePreviewSize');
+const fileRemove = document.getElementById('fileRemove');
+const submitBtn = document.getElementById('submitBtn');
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  const files = e.dataTransfer.files;
+  if (files.length) { fileInput.files = files; handleFile(files[0]); }
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+function handleFile(file) {
+  const valid = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+  if (!valid) { alert('Format file tidak didukung! Gunakan .xlsx atau .xls'); return; }
+  filePreviewName.textContent = file.name;
+  filePreviewSize.textContent = (file.size / 1024).toFixed(1) + ' KB';
+  dropzone.classList.add('d-none');
+  filePreview.classList.remove('d-none');
+  submitBtn.disabled = false;
+}
+
+fileRemove.addEventListener('click', () => {
+  fileInput.value = '';
+  dropzone.classList.remove('d-none');
+  filePreview.classList.add('d-none');
+  submitBtn.disabled = true;
+});
+</script>
+{% endblock %}
