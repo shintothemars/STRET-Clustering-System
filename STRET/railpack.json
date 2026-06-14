@@ -1,0 +1,7 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "python",
+  "deploy": {
+    "startCommand": "gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
+  }
+}
